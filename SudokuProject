@@ -1,0 +1,128 @@
+import java.util.Random;
+import java.util.Scanner;
+
+public class Main {
+
+    private static final int size = 9;
+    private static final int[][] board = new int[size][size];
+    private static boolean gameRunning=true;
+    private static int elapsedTime=0;
+
+    public static void clearScreen() {
+        try {
+            if (System.getProperty("os.name").contains("Windows"))
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            else
+                System.out.print("\033[H\033[2J");
+            System.out.flush();
+        } catch (Exception e) {
+            for (int i = 0; i < 50; i++) System.out.println();
+        }
+    }
+
+    public static void generateSudoku(int count) {
+        int placed = 0;
+        Random random = new Random();
+        while (placed < count) {
+            int row = random.nextInt(size), col = random.nextInt(size), num = random.nextInt(size) + 1;
+            if (board[row][col] == 0 && isValid(row, col, num)) {
+                board[row][col] = num;
+                placed++;
+            }
+        }
+    }
+
+    public static boolean isValid(int row, int col, int num) {
+
+        for (int i = 0; i < size; i++) {
+            if (board[row][i] == num || board[i][col]==num) {
+                return false;
+            }
+        }
+
+        int startRow = (row / 3) * 3, startCol = (col / 3) * 3;
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                if (board[startRow + i][startCol + j] == num) {
+                    return false;
+                }
+        return true;
+    }
+
+    public static void printBoard() {
+        System.out.println("\n Time elapsed : "+elapsedTime+" second \n");
+        for (int i = 0; i < size; i++) {
+            if (i % 3 == 0 && i != 0)
+                System.out.println("------+-------+------");
+
+            for (int j = 0; j < size; j++) {
+                if (j % 3 == 0 && j != 0)
+                    System.out.print("| ");
+                System.out.print(board[i][j] == 0 ? ". " : board[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    public static boolean win() {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == 0)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    public static void startTimer(){
+        Thread timerThread=new Thread(()->{
+            while (gameRunning){
+                try {
+                Thread.sleep(1000);
+                elapsedTime++;
+                clearScreen();
+                printBoard();
+                } catch(InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public static void main(String[] args) {
+
+        generateSudoku(50);
+        Scanner input=new Scanner(System.in);
+        startTimer();
+
+        while (gameRunning){
+            printBoard();
+
+        int row,col,num;
+        System.out.print("\n row (1_9): ");
+        row = input.nextInt()-1;
+        System.out.print(" col (1_9): ");
+        col = input.nextInt()-1;
+        System.out.print(" number (1_9): ");
+        num = input.nextInt();
+        if((row>=0 && row<size)&&(col>=0 && col<size)&&(num>0 && num<10)){
+            if (board[row][col]==0 && isValid(row,col,num)){
+        board[row][col]=num;
+            }
+            else
+                System.out.println("Invalid move! try again.");
+           }
+        else
+            System.out.println(" Invalid input! numbers must be betweem (1_9). ");
+        if (win()){
+            gameRunning=false;
+            clearScreen();
+            printBoard();
+            System.out.println(" YESSSSSSSSS!!!! ");
+            System.out.println(" You completed the SUSOKU =) ");
+            System.out.println("TIME : "+elapsedTime+" seconds");
+          }
+        }
+        input.close();
+    }
+}
